@@ -1,0 +1,223 @@
+#include <Servo.h>
+Servo Sone;
+Servo Stwo;
+Servo Sthree;
+Servo Sfour;
+Servo Sfive;
+Servo Ssix;
+Servo Sgrip;
+
+const int Sonepin = 3;
+const int Stwopin = 5;
+const int Sthreepin = 6;
+const int Sfourpin = 9;
+const int Sfivepin = 10;
+const int Ssixpin = 11;
+const int Sgrippin = 13;
+
+int Soneread = 0; //last servo write
+int Stworead = 0;
+int Sthreeread = 0;
+int Sfourread = 0;
+int Sfiveread = 0;
+int Ssixread = 0;
+int Sgripread = 0;
+
+int Sonenow = 0; //servo position on now
+int Stwonow = 0;
+int Sthreenow = 0;
+int Sfournow = 0;
+int Sfivenow = 0;
+int Ssixnow = 0;
+int Sgripnow = 0;
+
+int Sonerelative = 0; //servo relative from target
+int Stworelative = 0;
+int Sthreerelative = 0;
+int Sfourrelative = 0;
+int Sfiverelative = 0;
+int Ssixrelative = 0;
+int Sgriprelative = 0;
+
+const int posnum = 8; //angel position step
+
+int posline = 0; //posline in pos array variable
+                 //gripper pos 150 = grab 50 = release
+//1 = 1 step per 20ms _ 2 = 2 step per 20ms if delay = 0 it will move servo but if not it will wait and not move the servo - wait (millisec.)
+const int pos[posnum][9] = {  //{delay,rotary base, shoulder, elbow, elbow rotary,step skipper (for faster movement), gripper pos}
+  {0, 85, 180, 90, 180, 90, 90, 1, 150}, // task origin
+  {500},                               // delay 2000
+  {0, 100, 70, 0, 0, 20, 90, 1, 50}, // prepare grab
+  {500},
+  {0, 0, 180, 90, 180, 180, 90, 1, 180}, //grab
+  {500},
+  {0, 180, 120, 90, 180, 30, 90, 1, 180}, //lift
+  {500},
+ 
+};
+
+
+void setup() {
+  // put your setup code here, to run once:
+  Serial.begin(9600);
+  Serial.println("servo - attaching");
+  Sone.attach(Sonepin, 750, 2450);
+  Stwo.attach(Stwopin, 500, 2800);
+  Sthree.attach(Sthreepin, 550, 2000);
+  Sfour.attach(Sfourpin, 510, 2000);
+  Sfive.attach(Sfivepin, 500, 2000);
+  Ssix.attach(Ssixpin, 550, 2000);
+  Sgrip.attach(Sgrippin, 600, 2200);
+  delay(1000);
+  Serial.println("Servo position setup");
+  delay(1000);
+  Sone.write(90);
+  Serial.println("Servo 1 position setup");
+  delay(1000);
+  Stwo.write(180);
+  Serial.println("Servo 2 position setup");
+  delay(1000);
+  Sthree.write(90);
+  Serial.println("Servo 3 position setup");
+  delay(1000);
+  Sfour.write(0);
+  Serial.println("Servo 4 position setup");
+  delay(1000);
+  Sfive.write(90);
+  Serial.println("Servo 5 position setup");
+  delay(1000);
+  Ssix.write(90);
+  Serial.println("Servo 6 position setup");
+  delay(500);
+  Sgrip.write(90);
+  Serial.println("gripper position setup");
+  delay(500);
+  Serial.println("Servo position setup finished");
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  servo_move();
+  if (posline >= posnum - 1) {
+    posline = -1;
+  }
+  posline = posline + 1;
+  Serial.println("posline ++ ");
+}
+
+void servo_move()
+{
+  Sonenow = Sone.read(); //read last servo command
+  Stwonow = Stwo.read();
+  Sthreenow = Sthree.read();
+  Sfournow = Sfour.read();
+  Sfivenow = Sfive.read();
+  Ssixnow = Ssix.read();
+  Sgripnow = Sgrip.read();
+
+
+  Sonerelative = pos[posline][1] - Sonenow; //read numberic array line - posline servo 1 degree
+  Stworelative = pos[posline][2] - Stwonow; //read numberic array line - posline servo 2 degree
+  Sthreerelative = pos[posline][3] - Sthreenow;
+  Sfourrelative = pos[posline][4] - Sfournow;
+  Sfiverelative = pos[posline][5] - Sfivenow;
+  Ssixrelative = pos[posline][6] - Ssixnow;
+  Sgriprelative = pos[posline][8] - Sgripnow;
+  /////////////////////////////////////////////////////////////////////////////////////////////////
+  if (pos[posline][0] != 0) {
+    delay(pos[posline][0]);
+    Serial.println("delay");
+  }
+  else {
+
+    while ((Sonenow != pos[posline][1]) || (Stwonow != pos[posline][2]) || (Sthreenow != pos[posline][3])
+           || (Sfournow != pos[posline][4]) || (Sfivenow != pos[posline][5]) || (Ssixnow != pos[posline][6]) || (Sgripnow != pos[posline][8]))
+    {
+      //////////////////////////////////////////////////////////////////////////////////////////////
+      if (Sonenow != pos[posline][1]) {
+        Sone.write(Sonenow);
+      }
+      if (Stwonow != pos[posline][2]) {
+        Stwo.write(Stwonow);
+      }
+      if (Sthreenow != pos[posline][3]) {
+        Sthree.write(Sthreenow);
+      }
+      if (Sfournow != pos[posline][4]) {
+        Sfour.write(Sfournow);
+      }
+      if (Sfivenow != pos[posline][5]) {
+        Sfive.write(Sfivenow);
+      }
+      if (Ssixnow != pos[posline][6]) {
+        Ssix.write(Ssixnow);
+      }
+      //////////////////////////////////////////////////////////////////////////////////////////////
+      //////////////////////////////////////////////////////////////////////////////////////////////
+      if (Sonerelative > 0 && Sonenow < pos[posline][1]) {
+        Sonenow = Sonenow + pos[posline][7];
+        Sone.write(Sonenow);
+      }
+      if (Sonerelative < 0 && Sonenow > pos[posline][1]) {
+        Sonenow = Sonenow - pos[posline][7];
+        Sone.write(Sonenow);
+      }
+      //////////////////////////////////////////////////////////////////////////////////////////////
+      if (Stworelative > 0 && Stwonow < pos[posline][2]) {
+        Stwonow = Stwonow + pos[posline][7];
+        Stwo.write(Stwonow);
+      }
+      if (Stworelative < 0 && Stwonow > pos[posline][2]) {
+        Stwonow = Stwonow - pos[posline][7];
+        Stwo.write(Stwonow);
+      }
+      //////////////////////////////////////////////////////////////////////////////////////////////
+      if (Sthreerelative > 0 && Sthreenow < pos[posline][3]) {
+        Sthreenow = Sthreenow + pos[posline][7];
+        Sthree.write(Sthreenow);
+      }
+      if (Sthreerelative < 0 && Sthreenow > pos[posline][3]) {
+        Sthreenow = Sthreenow - pos[posline][7];
+        Sthree.write(Sthreenow);
+      }
+      //////////////////////////////////////////////////////////////////////////////////////////////
+      if (Sfourrelative > 0 && Sfournow < pos[posline][4]) {
+        Sfournow = Sfournow + pos[posline][7];
+        Sfour.write(Sfournow);
+      }
+      if (Sfourrelative < 0 && Sfournow > pos[posline][4]) {
+        Sfournow = Sfournow - pos[posline][7];
+        Sfour.write(Sfournow);
+      }
+      //////////////////////////////////////////////////////////////////////////////////////////////
+      if (Sfiverelative > 0 && Sfivenow < pos[posline][5]) {
+        Sfivenow = Sfivenow + pos[posline][7];
+        Sfive.write(Sfivenow);
+      }
+      if (Sfiverelative < 0 && Sfivenow > pos[posline][5]) {
+        Sfivenow = Sfivenow - pos[posline][7];
+        Sfive.write(Sfivenow);
+      }
+      //////////////////////////////////////////////////////////////////////////////////////////////
+      if (Ssixrelative > 0 && Ssixnow < pos[posline][6]) {
+        Ssixnow = Ssixnow + pos[posline][7];
+        Ssix.write(Ssixnow);
+      }
+      if (Ssixrelative < 0 && Ssixnow > pos[posline][6]) {
+        Ssixnow = Ssixnow - pos[posline][7];
+        Ssix.write(Ssixnow);
+      }
+      //////////////////////////////////////////////////////////////////////////////////////////////
+      if (Sgriprelative > 0 && Sgripnow < pos[posline][8]) {
+        Sgripnow = Sgripnow + pos[posline][7];
+        Sgrip.write(Sgripnow);
+      }
+      if (Sgriprelative < 0 && Sgripnow > pos[posline][8]) {
+        Sgripnow = Sgripnow - pos[posline][7];
+        Sgrip.write(Sgripnow);
+      }
+
+      }  //while loop end
+    }     //else end
+  }       //void servo move end
+
